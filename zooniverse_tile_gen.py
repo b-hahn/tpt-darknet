@@ -3,7 +3,7 @@ import math
 import csv
 from os import path
 import numpy as np
-from scipy.misc import imread, imsave
+from imageio import imread, imsave
 
 
 def main(beach_name,
