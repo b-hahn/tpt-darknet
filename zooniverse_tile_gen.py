@@ -103,10 +103,11 @@ def main(beach_name,
                                       path.basename(output_file_name),
                                       attribution,
                                       beach_name_manifest,
-                                      geo_area_manifest, date_survey_manifest])
+                                      geo_area_manifest,
+                                      date_survey_manifest])
 
     with open(path.join(save_path, 'manifest.csv'), 'w') as manifest_file:
-        writer = csv.writer(manifest_file, delimiter=',')
+        writer = csv.writer(manifest_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         writer.writerows(manifest_line)
 
 
@@ -115,7 +116,7 @@ if __name__ == "__main__":
     beach_name_manifest = "Island Beach State Park"
     geo_area_manifest = "New Jersey"
     date_survey_manifest = "17/11/2017"
-    survey_id = 25  # assuming less than 100'000 images per beach, the first number is the survey id,
+    survey_id = 25
     source_img_path = 'data/statepark/'  # set to '.' to read all images in current directory
     source_img_path = "~/code/traffic-light-utils/data/toytest/"
 
