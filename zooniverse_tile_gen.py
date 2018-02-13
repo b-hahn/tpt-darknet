@@ -2,6 +2,7 @@ import os
 import math
 import csv
 from os import path
+import fnmatch
 import numpy as np
 from imageio import imread, imsave
 
@@ -13,8 +14,8 @@ def main(beach_name,
          survey_id,
          source_img_path,
          output_dir="zooniverse_tiles",
-         desired_output_width=90,
-         desired_output_height=67,
+         desired_output_width=900,
+         desired_output_height=675,
          overlap=0.1,
          attribution="Peter Kohler"
          ):
@@ -30,16 +31,17 @@ def main(beach_name,
 
     # prepare manifest file
     # QUESTION: should the image name be an absolute or relative path?
-    manifest_line = [['subject_id', 'image_name1', 'attribution', 'beach', 'region', 'date']]
+    manifest_line = [['subject_id', 'image_name1', 'attribution', 'beach', 'region', 'date', 'source_folder']]
 
-    # loop through all .JPG files in directory.
-    images = [os.path.join(source_img_path, f) for f in os.listdir(source_img_path) if
-              (os.path.isfile(os.path.join(source_img_path, f)) and f.lower().endswith('.jpg'))]
+    # Recursively loop through all .JPG files in directory.
+    images = []
+    for root, dirnames, filenames in os.walk(source_img_path):
+        for filename in fnmatch.filter((x.lower() for x in filenames), '*.jpg'):
+            images.append(os.path.join(root, filename))
 
-    # loop through all images in directory
-    for input_file_name in images:
+    for idx, input_file_name in enumerate(images):
         print()
-        print('Processing file {}'.format(input_file_name))
+        print('{} of {} : Processing file {}'.format(idx+1, len(images), input_file_name))
 
         # load image
         img = imread(input_file_name)
@@ -89,7 +91,7 @@ def main(beach_name,
 
                 tile = img[int(tile_begin_y):int(tile_end_y), int(tile_begin_x):int(tile_end_x)]
 
-                fn = "{}_{}_tile_{}_{}.jpg".format(beach_name, path.splitext(path.basename(input_file_name))[0], i, j)
+                fn = "{}_{}_{}_tile_{}_{}.jpg".format(idx, beach_name, path.splitext(path.basename(input_file_name))[0], i, j)
                 output_file_name = path.join(save_path, fn)
 
                 print('   Tile ({}, {}) x: ({}, {}), y: ({}, {}) -> {}'.format(i, j, tile_begin_x, tile_end_x,
@@ -104,7 +106,8 @@ def main(beach_name,
                                       attribution,
                                       beach_name_manifest,
                                       geo_area_manifest,
-                                      date_survey_manifest])
+                                      date_survey_manifest,
+                                      path.basename(path.dirname(input_file_name))])
 
     with open(path.join(save_path, 'manifest.csv'), 'w') as manifest_file:
         writer = csv.writer(manifest_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -117,8 +120,8 @@ if __name__ == "__main__":
     geo_area_manifest = "New Jersey"
     date_survey_manifest = "17/11/2017"
     survey_id = 25
-    source_img_path = 'data/statepark/'  # set to '.' to read all images in current directory
-    source_img_path = "~/code/traffic-light-utils/data/toytest/"
+    source_img_path = 'data/Digital Drift - New Jersey, USA'  # set to '.' to read all images in current directory
+    # source_img_path = "~/code/traffic-light-utils/data/toytest/"
 
     main(beach_name,
          beach_name_manifest,
@@ -126,5 +129,5 @@ if __name__ == "__main__":
          date_survey_manifest,
          survey_id,
          source_img_path,
-         attribution="Peter Kohler",
+         attribution="Digital Drift",
          output_dir="zooniverse_tiles")
